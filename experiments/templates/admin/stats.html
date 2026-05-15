@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <title>AB Testing — Stats</title>
+    <style>
+        body { font-family: -apple-system, sans-serif; margin: 40px; background: #f5f5f5; }
+        table { border-collapse: collapse; width: 100%; background: #fff; margin-bottom: 40px; box-shadow: 0 1px 3px rgba(0,0,0,.1); }
+        th, td { padding: 12px 16px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #fafafa; font-weight: 600; }
+        .bar { display: inline-block; height: 20px; background: #4a90d9; border-radius: 3px; min-width: 4px; }
+    </style>
+</head>
+<body>
+    <h1>Statistics</h1>
+    {% for row in rows %}
+    <h2>{{ row.name }} ({{ row.key }})</h2>
+    <p>Total devices: <strong>{{ row.total_devices }}</strong></p>
+    <table>
+        <thead>
+            <tr>
+                <th>Value</th>
+                <th>Weight</th>
+                <th>Devices</th>
+                <th>%</th>
+                <th>Distribution</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for v in row.variants %}
+            <tr>
+                <td>{{ v.value }}</td>
+                <td>{{ v.weight }}‰</td>
+                <td>{{ v.count }}</td>
+                <td>{{ v.pct }}%</td>
+                <td>
+                    <div class="bar" style="width: {{ v.pct|floatformat:0 }}%;"></div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% empty %}
+    <p>No active experiments yet.</p>
+    {% endfor %}
+    <p><a href="{% url 'admin:index' %}">← Back to admin</a></p>
+</body>
+</html>
