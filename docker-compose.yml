@@ -1,0 +1,29 @@
+services:
+  db:
+    image: postgres:14.5
+    environment:
+      POSTGRES_DB: ab_testing
+      POSTGRES_USER: ab_testing
+      POSTGRES_PASSWORD: ab_testing
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ab_testing"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    ports:
+      - 8000:8000
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SECRET_KEY: django-insecure-key
+      DEBUG: "True"
+      DATABASE_URL: postgres://ab_testing:ab_testing@db:5432/ab_testing
+
+volumes:
+  pgdata:
