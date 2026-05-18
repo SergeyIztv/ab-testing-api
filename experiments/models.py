@@ -1,6 +1,5 @@
-import hashlib
-
 from django.db import models
+from django.db.models import UniqueConstraint
 
 
 class Device(models.Model):
@@ -46,38 +45,9 @@ class Assignment(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ("device", "experiment")
-
-
-def assign_variant(device: Device, experiment: Experiment) -> Variant:
-    existing = Assignment.objects.filter(
-        device=device, experiment=experiment
-    ).select_related("variant").first()
-    if existing:
-        return existing.variant
-
-    total_weight = sum(
-        experiment.variants.values_list("weight", flat=True)
-    )
-    hash_input = f"{device.token}:{experiment.key}"
-    hash_int = int(hashlib.sha256(hash_input.encode()).hexdigest(), 16)
-    bucket = hash_int % total_weight
-
-    cumulative = 0
-    for variant in experiment.variants.all():
-        cumulative += variant.weight
-        if bucket < cumulative:
-            Assignment.objects.create(
-                device=device,
-                experiment=experiment,
-                variant=variant,
+        constraints = [
+            UniqueConstraint(
+                fields=["device", "experiment"],
+                name="unique_device_experiment",
             )
-            return variant
-
-    last_variant = experiment.variants.last()
-    Assignment.objects.create(
-        device=device,
-        experiment=experiment,
-        variant=last_variant,
-    )
-    return last_variant
+        ]
